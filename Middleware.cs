@@ -3,6 +3,11 @@
     public class Middleware
     {
         private RequestDelegate _next;
+
+        public Middleware()
+        {
+        }
+
         public Middleware(RequestDelegate next)
         {
             _next = next;
@@ -10,7 +15,7 @@
 
         public async Task Invoke(HttpContext context)
         {
-            if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"]=="one")
+            if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"] == "one")
             {
                 if (!context.Response.HasStarted)
                 {
@@ -19,7 +24,9 @@
 
                 await context.Response.WriteAsync("Class based middleware \n");
             }
-            await _next(context);
+
+            if (_next != null)
+                await _next(context);
         }
     }
 }
