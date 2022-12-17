@@ -1,9 +1,24 @@
 using CoreScratch;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<FruitOptions>(options =>
+{
+    options.Name = "Watermelon";
+}); //configuring options to be used by the middleware
+
+
+//Middleware Configurations and diffferent usages
+//Middlewares execute in the same order in which it is given here below
+
 var app = builder.Build();
 
-
+app.MapGet("/fruit", async (HttpContext context,IOptions<FruitOptions> fruits) =>
+{
+    FruitOptions options = fruits.Value;
+    await context.Response.WriteAsync($"{options.Name}, {options.Color}");
+});
 
 ((IApplicationBuilder)app).Map("/branch", branch =>
 {
@@ -15,7 +30,7 @@ var app = builder.Build();
 {
     branch.Use(async (HttpContext context, Func<Task> next) =>
     {
-        await context.Response.WriteAsync("Branch Middleware");
+        await context.Response.WriteAsync("Branch Middleware from Program.cs file");
     });
 }
 ); //Middleware branching, and there is no next() invoked
