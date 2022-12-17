@@ -1,6 +1,12 @@
+using CoreScratch;
+
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
+
+app.UseMiddleware<Middleware>();
+/*
+ Commented out as this custom middleware is setup from the 
 app.Use(async(context, next) =>
 {
     if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"] == "true")
@@ -11,6 +17,7 @@ app.Use(async(context, next) =>
     await next();
 }
 ); //Use is the custom middleware
+*/
 
 app.MapGet("/", () => "Hello World!");
 
