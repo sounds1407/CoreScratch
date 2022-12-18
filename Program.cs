@@ -1,17 +1,20 @@
 using CoreScratch;
+using CoreScratch.Services;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//configuring options to be used by the middleware
 builder.Services.Configure<FruitOptions>(options =>
 {
     options.Name = "Watermelon";
-}); //configuring options to be used by the middleware
+}); 
 
+//Service class Instance for dependency Injection
+builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>(); 
 
 //Middleware Configurations and diffferent usages
 //Middlewares execute in the same order in which it is given here below
-
 var app = builder.Build();
 
 app.MapGet("/fruit", async (HttpContext context,IOptions<FruitOptions> fruits) =>
@@ -20,12 +23,14 @@ app.MapGet("/fruit", async (HttpContext context,IOptions<FruitOptions> fruits) =
     await context.Response.WriteAsync($"{options.Name}, {options.Color}");
 });
 
+//Invoking middleware from class with the branch
 ((IApplicationBuilder)app).Map("/branch", branch =>
 {
     branch.Run(new Middleware().Invoke);
 }
-); //Invoking middleware from class with the branch
+); 
 
+//Middleware branching, and there is no next() invoked
 ((IApplicationBuilder) app).Map("/branch",branch =>
 {
     branch.Use(async (HttpContext context, Func<Task> next) =>
@@ -33,14 +38,9 @@ app.MapGet("/fruit", async (HttpContext context,IOptions<FruitOptions> fruits) =
         await context.Response.WriteAsync("Branch Middleware from Program.cs file");
     });
 }
-); //Middleware branching, and there is no next() invoked
+); 
 
-
-app.UseMiddleware<Middleware>();
-
-
-/*
- Commented out as this custom middleware is setup from the Class Middleware.cs
+//Use is the custom middleware
 app.Use(async(context, next) =>
 {
     if (context.Request.Method == HttpMethods.Get && context.Request.Query["custom"] == "true")
@@ -50,9 +50,22 @@ app.Use(async(context, next) =>
     }
     await next();
 }
-); //Use is the custom middleware
-*/
+);
 
-app.MapGet("/", () => "Hello World!"); //endpoint 
+//Middleware using class file
+app.UseMiddleware<Middleware>();
 
-app.Run(); //this listens the request, "Run" is the terminal middleware.
+//endpoint navigation
+app.MapGet("/", () => "Hello World!");
+
+//Usage of service Instance
+app.MapGet("/formatter1",async (HttpContext context, IResponseFormatter formatter) =>{
+    await formatter.Format(context,"Formatter One");
+});
+
+app.MapGet("/formatter2", async (HttpContext context, IResponseFormatter formatter) => {
+    await formatter.Format(context, "Formatter Two");
+});
+
+//this listens the request, "Run" is the terminal middleware.
+app.Run(); 
