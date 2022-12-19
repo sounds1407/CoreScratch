@@ -1,4 +1,4 @@
-﻿namespace CoreScratch
+﻿namespace CoreScratch.Middlewares
 {
     public class Middleware
     {

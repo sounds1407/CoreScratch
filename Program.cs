@@ -1,4 +1,5 @@
 using CoreScratch;
+using CoreScratch.Middlewares;
 using CoreScratch.Services;
 using Microsoft.Extensions.Options;
 
@@ -11,11 +12,13 @@ builder.Services.Configure<FruitOptions>(options =>
 }); 
 
 //Service class Instance for dependency Injection
-builder.Services.AddSingleton<IResponseFormatter, HtmlResponseFormatter>(); 
+builder.Services.AddSingleton<IResponseFormatter,TextResponseFormatter>(); 
 
 //Middleware Configurations and diffferent usages
 //Middlewares execute in the same order in which it is given here below
 var app = builder.Build();
+
+app.Logger.LogDebug("Pipeline configuration starts");
 
 app.MapGet("/fruit", async (HttpContext context,IOptions<FruitOptions> fruits) =>
 {
@@ -55,6 +58,8 @@ app.Use(async(context, next) =>
 //Middleware using class file
 app.UseMiddleware<Middleware>();
 
+app.UseMiddleware<DIMiddleware>();
+
 //endpoint navigation
 app.MapGet("/", () => "Hello World!");
 
@@ -67,5 +72,9 @@ app.MapGet("/formatter2", async (HttpContext context, IResponseFormatter formatt
     await formatter.Format(context, "Formatter Two");
 });
 
+app.Logger.LogDebug("Pipeline configuration Ends");
+
 //this listens the request, "Run" is the terminal middleware.
 app.Run(); 
+
+
